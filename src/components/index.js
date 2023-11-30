@@ -2,12 +2,15 @@ import { Octokit } from "https://esm.sh/@octokit/core";
 import React, { useEffect, useState } from 'react';
 import Navbar from "./navbar/index";
 import Card from "./card/index";
+import Pagination from "./pagination"
 
 function Home() {
     const [keyword, setKeyword] = useState('code');
     const [searchKey, setSearchInput] = useState('');
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [pageNumber, setPageNumber] = useState(1);
+    const [pageSize, setPageSize] = useState(30);
 
     console.log("feteched data", data);
 
@@ -28,14 +31,26 @@ function Home() {
 
     }
 
+    function backPage() {
+        if (pageNumber > 1) {
+            setPageNumber(pageNumber - 1);
+        }
+    }
+
+    function nextPage() {
+        if (pageNumber < 10) {
+            setPageNumber(pageNumber + 1);
+        }
+    }
+
     useEffect(() => {
         const queryString = 'q=' + encodeURIComponent(searchKey);
         const octokit = new Octokit({
-            auth: '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'
+            auth: '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'
         })
         const fetchData = async () => {
             setLoading(true);
-            let data = await octokit.request(`GET /search/${keyword}?${queryString}&page=2`, {
+            let data = await octokit.request(`GET /search/${keyword}?${queryString}&page_size=${pageSize}&page=${pageNumber}`, {
                 headers: {
                     'X-GitHub-Api-Version': '2022-11-28'
                 },
@@ -52,7 +67,7 @@ function Home() {
             fetchData()
         }
 
-    }, [keyword, searchKey])
+    }, [keyword, searchKey, pageNumber])
 
     return (
         <>
@@ -77,6 +92,14 @@ function Home() {
                 })}
             </div>
             {loading && <h6 style={{ marginTop: "15%" }}>Loading...</h6>}
+            <div style={{margin:"10px 0", padding:"10px"}}>
+            {!!data.length && <Pagination
+                page_size={pageSize}
+                page_number={pageNumber}
+                nextHandler={nextPage}
+                backHandler={backPage}
+            />}
+            </div>
         </>
     )
 }
